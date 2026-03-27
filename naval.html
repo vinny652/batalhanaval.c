@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batalha Naval - Habilidades Especiais</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a2e; color: white; display: flex; flex-direction: column; align-items: center; }
+        h1 { color: #0f3460; background: #e94560; padding: 10px 20px; border-radius: 8px; }
+        
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(10, 35px); 
+            gap: 2px; 
+            background: #16213e; 
+            padding: 10px; 
+            border: 3px solid #0f3460;
+        }
+
+        .cell { 
+            width: 35px; height: 35px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; border-radius: 2px; font-size: 12px;
+        }
+
+        /* Cores conforme o desafio */
+        .agua { background: #4a90e2; color: #fff; } /* Valor 0 */
+        .navio { background: #474747; color: #fff; } /* Valor 3 */
+        .habilidade { background: #e94560; color: #fff; animation: pulse 1.5s infinite; } /* Valor 5 */
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .controls { margin: 20px; }
+        button { padding: 10px; cursor: pointer; background: #e94560; border: none; color: white; font-weight: bold; border-radius: 5px; }
+        button:hover { background: #ff6b81; }
+    </style>
+</head>
+<body>
+
+    <h1>Batalha Naval: Nível Avançado</h1>
+
+    <div class="controls">
+        <button onclick="aplicarHabilidade('cone', 2, 2)">Ver Cone</button>
+        <button onclick="aplicarHabilidade('cruz', 5, 5)">Ver Cruz</button>
+        <button onclick="aplicarHabilidade('octaedro', 7, 3)">Ver Octaedro</button>
+        <button onclick="resetarTabuleiro()">Resetar</button>
+    </div>
+
+    <div id="tabuleiro" class="grid"></div>
+
+    <script>
+        const TAMANHO = 10;
+        let tabuleiro = [];
+
+        // Inicializa o tabuleiro 10x10 com água (0) e alguns navios (3)
+        function resetarTabuleiro() {
+            tabuleiro = Array.from({ length: TAMANHO }, () => Array(TAMANHO).fill(0));
+            
+            // Posicionando navios fixos para teste (conforme requisitos)
+            tabuleiro[1][1] = 3; tabuleiro[1][2] = 3;
+            tabuleiro[8][8] = 3; tabuleiro[8][7] = 3;
+            
+            renderizar();
+        }
+
+        function renderizar() {
+            const container = document.getElementById('tabuleiro');
+            container.innerHTML = '';
+
+            for (let i = 0; i < TAMANHO; i++) {
+                for (let j = 0; j < TAMANHO; j++) {
+                    const div = document.createElement('div');
+                    div.classList.add('cell');
+                    
+                    if (tabuleiro[i][j] === 0) div.classList.add('agua');
+                    if (tabuleiro[i][j] === 3) div.classList.add('navio');
+                    if (tabuleiro[i][j] === 5) div.classList.add('habilidade');
+                    
+                    div.innerText = tabuleiro[i][j];
+                    container.appendChild(div);
+                }
+            }
+        }
+
+        // Lógica principal de sobreposição de matrizes
+        function aplicarHabilidade(tipo, origemL, origemC) {
+            resetarTabuleiro(); // Limpa antes de aplicar nova habilidade
+            
+            const area = 5; // Tamanho da matriz de habilidade (5x5)
+            const offset = Math.floor(area / 2);
+
+            for (let i = 0; i < area; i++) {
+                for (let j = 0; j < area; j++) {
+                    let afetado = 0;
+
+                    // Definição das formas via condicionais (Matrizes Dinâmicas)
+                    if (tipo === 'cone') {
+                        if (i >= j - offset + offset && i >= (area - 1 - j) - offset + offset) afetado = 1;
+                    } 
+                    else if (tipo === 'cruz') {
+                        if (i === offset || j === offset) afetado = 1;
+                    } 
+                    else if (tipo === 'octaedro') {
+                        // Lógica de losango/octaedro baseada em distância de Manhattan
+                        if (Math.abs(i - offset) + Math.abs(j - offset) <= offset) afetado = 1;
+                    }
+
+                    // Sobreposição no tabuleiro com validação de limites (Boundary Check)
+                    if (afetado === 1) {
+                        let tabL = origemL + (i - offset);
+                        let tabC = origemC + (j - offset);
+
+                        if (tabL >= 0 && tabL < TAMANHO && tabC >= 0 && tabC < TAMANHO) {
+                            tabuleiro[tabL][tabC] = 5; // Marca como área afetada
+                        }
+                    }
+                }
+            }
+            renderizar();
+        }
+
+        // Início imediato
+        resetarTabuleiro();
+    </script>
+</body>
+</html>
